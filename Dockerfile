@@ -8,7 +8,8 @@ RUN apt update && \
     software-properties-common \
     ca-certificates \
     wget \
-    ocl-icd-libopencl1
+    ocl-icd-libopencl1 \
+    nano
 
 # Intel GPU compute user-space drivers
 RUN mkdir -p /tmp/gpu && \
@@ -28,6 +29,17 @@ RUN cd / && \
   tar xvf ollama-0.5.4-ipex-llm-2.2.0b20250226-ubuntu.tgz --strip-components=1 -C /
 
 ENV OLLAMA_HOST=0.0.0.0:11434
+ENV OLLAMA_NUM_GPU=999
+ENV GIN_MODE=release
+ENV no_proxy=localhost,127.0.0.1
 ENV ZES_ENABLE_SYSMAN=1
+ENV SYCL_CACHE_PERSISTENT=1
+ENV OLLAMA_KEEP_ALIVE=10m
+# [optional] under most circumstances, the following environment variable may improve performance, but sometimes this may also cause performance degradation
+ENV SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS=1
+# [optional] if you want to run on single GPU, use below command to limit GPU may improve performance
+# ENV ONEAPI_DEVICE_SELECTOR=level_zero:0
+# If you have more than one dGPUs, according to your configuration you can use configuration like below, it will use the first and second card.
+# ENV ONEAPI_DEVICE_SELECTOR="level_zero:0;level_zero:1"
 
-ENTRYPOINT ["/bin/bash", "/start-ollama.sh"]
+ENTRYPOINT ["./ollama", "serve"]
